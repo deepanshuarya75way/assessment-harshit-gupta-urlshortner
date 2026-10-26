@@ -316,7 +316,7 @@ const updateURLdestination= async (req,res)=>{
             $or: [
                 { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id :null },
                 {shortCode : id}
-            ].filter(condition=> condition._id !==null || condition.shortcode)
+            ].filter(condition=> condition._id !==null || condition.shortCode)
         });
         if(!link){
             return res.status(404).json({
@@ -328,10 +328,10 @@ const updateURLdestination= async (req,res)=>{
                 success: false,error: 'Unathorized: Only the Url owner can change'
             });
         }
-        const redisClient= require('../config/redis');
-        await resisClient.del(`shortlink:${link.shortcode}`);
         link.destination=newDestination;
         await link.save();
+        const redisClient= require('../config/redis');
+        await redisClient.del(`shortlink:${link.shortcode}`);
         return res.status(200).json({
             success:true,
             message:'Destination updated succesfully',

@@ -28,7 +28,6 @@ router.use(apiLimiter);
 router.post(
     "/",
     authMiddleware,
-    validateUrl,
     createShortUrl
 );
 

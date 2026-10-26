@@ -130,6 +130,30 @@ function Dashboard() {
             setLoading(false);
         }
     };
+    
+    
+    
+    
+    // edit URL 
+    const handleEditClick=(url) =>{
+        const newDestination =prompt("Enter new Name:",url.originalUrl);
+        if(newDestination && newDestination.trim()!==""){
+            handleUpdateDestination(url._id,newDestination.trim());
+        }
+    };
+
+    const handleUpdateDestination =async(urlId, newDestination) =>{
+        try{
+            const response = await api.patch(`/url/${urlId}`, { originalUrl: newDestination });
+            if(response.data.success){
+                alert("Destination updated successfully");
+                fetchUrls();
+            } 
+        }catch(error){
+            alert(error.response?.data?.message || "failed");
+        }
+     };
+
 
     // =========================
     // DELETE URL
@@ -711,6 +735,7 @@ function Dashboard() {
                                                         >
                                                             Delete
                                                         </button>
+                                                        <button onClick= {()=> handleEditClick(url)}>Edit</button>
 
                                                     </div>
 

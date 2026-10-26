@@ -309,34 +309,40 @@ const generateUrlQRCode = async (req, res) => {
 const updateURLdestination= async (req,res)=>{
     try{
         const{ id } = req.params;
-        const newDestination=req.body.destination;
-        const userId =req.user._id;
+        const newDestination=String(req.body.originalUrl || req.body.destination || "").trim();
+        const userId =req.user?.id;
+        if(!userId){
+            return res.status(401).json({success: false,error:" Not authneticate"});
+        }
 
-        const link =await Link.findOne({ 
-            $or: [
-                { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id :null },
-                {shortCode : id}
-            ].filter(condition=> condition._id !==null || condition.shortCode)
-        });
+        const conditions =[{shortCode: id}];
+        if(/^[0-9a-fA-F]{24}$/.test(id)) conditions.push({_id:id});
+        const link=await Url.findOne({$or: conditions});
         if(!link){
             return res.status(404).json({
                 success: false,error: 'Short link not found.'
             });
         };
-        if(link.owner.toString() !== userId.toString()){
-            return res.status(403).json({
-                success: false,error: 'Unathorized: Only the Url owner can change'
-            });
+        // console.log("link:",link.user," |req user:",req.user);
+        if(link.user.toString() !== userId.toString()){
+            return res.status(403).json({success: false, error:"Unauthorized: Only onwer can access"})
         }
-        link.destination=newDestination;
+        try{
+            const parsed=new URL(newDestination);
+            if(!["http:","https:"].includes(parsed.protocol)) throw new Error();
+        }catch{
+            return res.status(400).json({ success: false, error: "Invalid Url"});
+        }
+        link.originalUrl=newDestination;
         await link.save();
-        const redisClient= require('../config/redis');
-        await redisClient.del(`shortlink:${link.shortcode}`);
+
+        await redisClient.del(link.shortCode);
         return res.status(200).json({
             success:true,
             message:'Destination updated succesfully',
             data: link
         });
+
 
     }catch(error){
         console.error('Error updating URL Destination',error);

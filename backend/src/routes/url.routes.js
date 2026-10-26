@@ -61,7 +61,6 @@ router.delete(
 router.patch(
     "/:id",
     authMiddleware,
-    validateUrl,
     updateURLdestination
 );
 

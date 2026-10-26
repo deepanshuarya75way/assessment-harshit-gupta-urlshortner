@@ -16,7 +16,8 @@ const {
     getAllUrls,
     deleteUrl,
     getUrlAnalytics,
-    generateUrlQRCode
+    generateUrlQRCode,
+    updateURLdestination
 
 } = require("../controllers/url.controller");
 
@@ -56,6 +57,12 @@ router.delete(
     "/:id",
     authMiddleware,
     deleteUrl
+);
+router.patch(
+    "/:id",
+    authMiddleware,
+    validateUrl,
+    updateURLdestination
 );
 
 module.exports = router;

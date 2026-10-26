@@ -120,11 +120,6 @@ VITE_BASE_URL=http://localhost:3000
 
 ---
 
-## 📸 Screenshots
-
-Add screenshots here after deployment.
-
----
 
 ## 👨‍💻 Author
 

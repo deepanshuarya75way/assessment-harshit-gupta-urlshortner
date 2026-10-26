@@ -306,11 +306,51 @@ const generateUrlQRCode = async (req, res) => {
         });
     }
 };
+const updateURLdestination= async (req,res)=>{
+    try{
+        const{ id } = req.params;
+        const newDestination=req.body.destination;
+        const userId =req.user._id;
+
+        const link =await Link.findOne({ 
+            $or: [
+                { _id: id.match(/^[0-9a-fA-F]{24}$/) ? id :null },
+                {shortCode : id}
+            ].filter(condition=> condition._id !==null || condition.shortcode)
+        });
+        if(!link){
+            return res.status(404).json({
+                success: false,error: 'Short link not found.'
+            });
+        };
+        if(link.owner.toString() !== userId.toString()){
+            return res.status(403).json({
+                success: false,error: 'Unathorized: Only the Url owner can change'
+            });
+        }
+        const redisClient= require('../config/redis');
+        await resisClient.del(`shortlink:${link.shortcode}`);
+        link.destination=newDestination;
+        await link.save();
+        return res.status(200).json({
+            success:true,
+            message:'Destination updated succesfully',
+            data: link
+        });
+
+    }catch(error){
+        console.error('Error updating URL Destination',error);
+        res.status(500).json({
+            success: false,error:'Internal server error'
+        });
+    }
+};
 module.exports = {
     createShortUrl,
     redirectToOriginalUrl,
     getAllUrls,
     deleteUrl,
     getUrlAnalytics,
-    generateUrlQRCode
+    generateUrlQRCode,
+    updateURLdestination
 };
